@@ -1,30 +1,40 @@
-// rca.v
-// Identical structure to Task 2's ripple_adder -- reuse your wiring
-// pattern directly.
+// rca64.v
+// A plain 64-bit ripple-carry adder, chaining 64 FA_Gate instances (the
+// delay-annotated version carried forward from Task 2).
 //
-// Required file: copy your completed FA_Gate.v from Task 2 (the version
-// with delays already added, from part (a) or (b)) into this folder.
-// No separate "delay" variant is needed -- Task 2's FA_Gate already has
-// delays built in, and every gate/module from here on should too.
+// TODO: instantiate 64 FA_Gate modules, chained exactly like Task 2/3's
+// 4-bit ripple adder, just 64 bits wide. This is very repetitive -- a
+// generate-for loop is a reasonable way to write this one, since every
+// stage is structurally identical, e.g.:
 //
-// TODO: instantiate four FA_Gate instances, same chaining pattern as
-// Task 2 (FA0..FA3, carry chain c1,c2,c3).
+//   wire [64:0] c;
+//   assign c[0] = cin;
+//   genvar i;
+//   generate
+//     for (i = 0; i < 64; i = i + 1) begin : gen_fa
+//       FA_Gate FA (.a(a[i]), .b(b[i]), .cin(c[i]), .sum(sum[i]), .cout(c[i+1]));
+//     end
+//   endgenerate
+//   assign cout = c[64];
 
-module rca(
-  input  [3:0] a,
-  input  [3:0] b,
-  input        cin,
-  output [3:0] sum,
-  output       cout
+module rca64(
+  input  [63:0] a,
+  input  [63:0] b,
+  input         cin,
+  output [63:0] sum,
+  output        cout
 );
 
-  wire c1, c2, c3;
+  wire [64:0] c;
+  assign c[0] = cin;
 
-  // TODO: your four FA_Gate instances go here.
-  FA_Gate FA0 (.a(a[0]), .b(b[0]), .cin(cin), .sum(sum[0]), .cout(c1));
-FA_Gate FA1 (.a(a[1]), .b(b[1]), .cin(c1), .sum(sum[1]), .cout(c2));
-FA_Gate FA2 (.a(a[2]), .b(b[2]), .cin(c2), .sum(sum[2]), .cout(c3));
-FA_Gate FA3 (.a(a[3]), .b(b[3]), .cin(c3), .sum(sum[3]), .cout(cout));
-  
+  genvar i;
+  generate
+    for (i = 0; i < 64; i = i + 1) begin : gen_fa
+      FA_Gate FA (.a(a[i]), .b(b[i]), .cin(c[i]), .sum(sum[i]), .cout(c[i+1]));
+    end
+  endgenerate
+
+  assign cout = c[64];
 
 endmodule
